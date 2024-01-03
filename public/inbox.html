@@ -1,0 +1,184 @@
+<!-- public/inbox.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Inbox</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+    
+        .chat-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    
+        .message-container {
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #055f2081;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            background-color: #06a83781;
+        }
+
+        .user-message {
+            text-align: right;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .other-user-message {
+            text-align: left;
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .message-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .timestamp {
+            font-size: 12px;
+            color: #777;
+        }
+    
+        #messageForm {
+            display: flex;
+            flex-direction: column;
+        }
+    
+        #userInput,
+        #messageInput,
+        #colorInput,
+        #sendButton {
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+    
+        #colorInput {
+            width: 50px;
+        }
+    
+        #sendButton {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+    
+        #sendButton:hover {
+            background-color: #45a049;
+        }
+    
+        #fetchMessages {
+            padding: 8px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    
+        #fetchMessages:hover {
+            background-color: #1e87d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Chat Inbox</h1>
+        <div id="messages" style="max-height: 300px; overflow-y: auto;"></div>
+        <span id="detail"></span>
+        <form id="messageForm">
+            <textarea id="messageInput" placeholder="Type a message..." rows="3" required></textarea>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+<!-- Add this line to include the moment.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+    <script>
+ async function getMessages() {
+            const response = await fetch('/getMessages');
+            const messages = await response.json();
+
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = '';
+
+            messages.forEach(message => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${message.user === 'user' ? 'user-message' : ''}`;
+                messageDiv.textContent = ` ${moment(message.timestamp).fromNow()}: ${message.user}:  ${message.text}   `;
+                messagesDiv.appendChild(messageDiv);
+            });
+
+            // Scroll to the bottom to show the latest message
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+    
+      
+
+        // Fetch messages manually
+
+        // Update messages every second
+        setInterval(getMessages, 1000);
+
+        // Initial fetch on page load
+        getMessages();
+    
+        // Submit message form using fetch API
+        document.getElementById('messageForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+    
+            const messageInput = document.getElementById('messageInput');
+            const messageText = messageInput.value;
+            // const user = document.getElementById('user').value;
+    
+            if (messageText.trim() !== '') {
+                const response = await fetch('/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `message=${encodeURIComponent(messageText)}`,
+                });
+    
+                // Update messages after sending a new message
+                messageInput.value = "";
+                getMessages();
+            }
+        });
+        
+    
+        // Fetch messages manually
+    
+        // Update messages every second
+        setInterval(getMessages, 1000);
+    </script>
+    
+</body>
+</html>
